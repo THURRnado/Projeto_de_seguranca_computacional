@@ -1,3 +1,3 @@
-# Projeto_de_seguranca_computacional
+# Projeto de seguranca computacional
 
 Um projeto para a disciplina de segurança computacional
