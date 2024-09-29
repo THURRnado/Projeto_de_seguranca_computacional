@@ -45,6 +45,38 @@ std::string md5(const std::string& str) {
     return ss.str();
 }
 
+std::string sha1(const std::string& str) {
+    unsigned char hash[SHA_DIGEST_LENGTH];
+
+    SHA_CTX sha1;
+    SHA1_Init(&sha1);
+    SHA1_Update(&sha1, str.c_str(), str.size());
+    SHA1_Final(hash, &sha1);
+
+    std::stringstream ss;
+
+    for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+    }
+    return ss.str();
+}
+
+std::string sha256(const std::string& str) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, str.c_str(), str.size());
+    SHA256_Final(hash, &sha256);
+
+    std::stringstream ss;
+
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+    }
+    return ss.str();
+}
+
 std::string QuebraHash(std::string hash, std::string hash_type) {
     int x = 1;
     std::ifstream in_file;
@@ -56,14 +88,36 @@ std::string QuebraHash(std::string hash, std::string hash_type) {
         exit(1);
     }
 
-    while (x<=100000) {
-        in_file >> password;
-        hashed_password = md5(password);
-        std::cout << password << std::endl;
-        x++;
+    if (hash_type.compare("MD5") == 0) {
+        while (true) {
+            std::getline(in_file, password);
+            hashed_password = md5(password);
+            std::cout << x++ << std::endl;
+            if (hashed_password.compare(hash) == 0) {
+                break;
+            }
+        }
+    }
 
-        if (hashed_password.compare(hash) == 0) {
-            break;
+    if (hash_type.compare("SHA-1") == 0) {
+        while (true) {
+            std::getline(in_file, password);
+            hashed_password = sha1(password);
+            std::cout << x++ << std::endl;
+            if (hashed_password.compare(hash) == 0) {
+                break;
+            }
+        }
+    }
+
+    if (hash_type.compare("SHA-256") == 0) {
+        while (true) {
+            std::getline(in_file, password);
+            hashed_password = sha256(password);
+            std::cout << x++ << std::endl;
+            if (hashed_password.compare(hash) == 0) {
+                break;
+            }
         }
     }
 
