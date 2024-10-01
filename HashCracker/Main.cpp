@@ -3,6 +3,26 @@
 
 #define TESTE "realhuman_phill.txt"
 
+void CarregaDicionario(std::vector<std::string>& dictionary, std::string dictionary_path) {
+    std::string line;
+    std::ifstream in_file;
+
+    in_file.open(dictionary_path);
+
+    if (!in_file.is_open()) {
+        std::cout << "Nao foi possivel abrir o arquivo." << std::endl;
+        exit(1);
+    }
+
+    while (!in_file.eof()) {
+        std::getline(in_file, line);
+        dictionary.push_back(line);
+    }
+    
+    in_file.close();
+
+}
+
 std::string DescobreHash(std::string s) {
 
     std::string hash_type;
@@ -21,8 +41,12 @@ std::string DescobreHash(std::string s) {
         hash_type = "SHA-256";
         break;
 
+    case 128:
+        hash_type = "SHA-512";
+        break;
+
     default:
-        hash_type = "ERROR";
+        hash_type = "Insira um hash valido!";
         break;
     }
 
@@ -77,33 +101,40 @@ std::string sha256(const std::string& str) {
     return ss.str();
 }
 
-std::string QuebraHash(std::string hash, std::string hash_type) {
-    int x = 1;
-    std::ifstream in_file;
-    std::string password, hashed_password;
-    in_file.open(TESTE);
+std::string sha512(const std::string& str) {
+    unsigned char hash[SHA512_DIGEST_LENGTH];
 
-    if (!in_file.is_open()) {
-        std::cout << "Erro ao abrir o arquivo!" << std::endl;
-        exit(1);
+    SHA512_CTX sha512;
+    SHA512_Init(&sha512);
+    SHA512_Update(&sha512, str.c_str(), str.size());
+    SHA512_Final(hash, &sha512);
+
+    std::stringstream ss;
+
+    for (int i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
     }
+    return ss.str();
+}
+
+std::string QuebraHash(std::vector<std::string> dictionary, std::string hash, std::string hash_type) {
+    std::string password, hashed_password;
 
     if (hash_type.compare("MD5") == 0) {
-        while (true) {
-            std::getline(in_file, password);
+        for (int i = 0; i < dictionary.size(); ++i) {
+            password = dictionary[i];
             hashed_password = md5(password);
-            std::cout << x++ << std::endl;
             if (hashed_password.compare(hash) == 0) {
                 break;
             }
         }
+
     }
 
     if (hash_type.compare("SHA-1") == 0) {
-        while (true) {
-            std::getline(in_file, password);
+        for (int i = 0; i < dictionary.size(); ++i) {
+            password = dictionary[i];
             hashed_password = sha1(password);
-            std::cout << x++ << std::endl;
             if (hashed_password.compare(hash) == 0) {
                 break;
             }
@@ -111,10 +142,19 @@ std::string QuebraHash(std::string hash, std::string hash_type) {
     }
 
     if (hash_type.compare("SHA-256") == 0) {
-        while (true) {
-            std::getline(in_file, password);
+        for (int i = 0; i < dictionary.size(); ++i) {
+            password = dictionary[i];
             hashed_password = sha256(password);
-            std::cout << x++ << std::endl;
+            if (hashed_password.compare(hash) == 0) {
+                break;
+            }
+        }
+    }
+
+    if (hash_type.compare("SHA-512") == 0) {
+        for (int i = 0; i < dictionary.size(); ++i) {
+            password = dictionary[i];
+            hashed_password = sha512(password);
             if (hashed_password.compare(hash) == 0) {
                 break;
             }
@@ -125,24 +165,36 @@ std::string QuebraHash(std::string hash, std::string hash_type) {
 }
 
 int main(int argc, char** argv) {
-    std::string hash, hash_type;
+    std::string hash, hash_type, dictionary_path = TESTE;
+    std::vector<std::string> dictionary;
 
-    std::cout << "Insira o hash: ";
-    std::cin >> hash;
+    std::cout << "Carregando dicionario... " << std::endl;
+    CarregaDicionario(dictionary, dictionary_path);
+    std::cout << "Dicionario carregado.\n " << std::endl;
+    
+    while(true){ 
+        std::cout << "Insira o hash: ";
+        std::getline(std::cin, hash);
 
-    hash_type = DescobreHash(hash);
+        if (hash.empty()) {
+            std::cout << "\nPrograma encerrado.\n" << std::endl;
+            break;
+        }
 
-    auto start = std::chrono::steady_clock::now();
+        hash_type = DescobreHash(hash);
 
-    std::string resultado = QuebraHash(hash, hash_type);
+        auto start = std::chrono::high_resolution_clock::now();
 
-    auto end = std::chrono::steady_clock::now();
+        std::string resultado = QuebraHash(dictionary, hash, hash_type);
 
-    std::chrono::duration<double> elapsed = end - start;
+        auto end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Tipo de hash: " << hash_type << std::endl;
-    std::cout << "Senha encontrada: " << resultado << std::endl;
-    std::cout << "Tempo para quebrar o hash: " << elapsed.count() << " segundos" << std::endl;
+        std::chrono::duration<double> elapsed = end - start;
+
+        std::cout << "Tipo de hash: " << hash_type << std::endl;
+        std::cout << "Senha encontrada: " << resultado << std::endl;
+        std::cout << "Tempo para quebrar o hash: " << elapsed.count() << " segundos" << std::endl;
+    }
 
     return 0;
 }
