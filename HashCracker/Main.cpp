@@ -128,7 +128,6 @@ std::string QuebraHash(std::vector<std::string> dictionary, std::string hash, st
                 break;
             }
         }
-
     }
 
     if (hash_type.compare("SHA-1") == 0) {
