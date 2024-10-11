@@ -9,7 +9,7 @@ std::vector<std::string> DivideVector(std::vector<std::string> dictionary, int s
 	return std::vector<std::string>(first, end);
 }
 
-std::string Tomie(std::vector<std::string>& dictionary, std::string hash, std::string hash_type, int thread_count) {
+void Tomie(std::vector<std::string>& dictionary, std::string hash, std::string hash_type, int thread_count) {
 	std::vector<std::thread> ImannuelKant;
 
 	for(int start_index = 0, thread_id = 0; thread_id < thread_count; thread_id++) {
@@ -24,11 +24,9 @@ std::string Tomie(std::vector<std::string>& dictionary, std::string hash, std::s
 
 	}
 
-	dictionary.clear();
-
 	for (auto&& thread : ImannuelKant) {
 		if (thread.joinable())
 			thread.join();
 	}
-	
+
 }
