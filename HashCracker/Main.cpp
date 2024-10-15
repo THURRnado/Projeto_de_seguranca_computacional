@@ -1,148 +1,126 @@
-#include <iostream>
 #include "Headers.h"
 
-#define TESTE "realhuman_phill.txt"
-
-std::string DescobreHash(std::string s) {
-
-    std::string hash_type;
-
-    switch (s.length()) {
-    
-    case 32:
-        hash_type = "MD5";
-        break;
-
-    case 40:
-        hash_type = "SHA-1";
-        break;
-
-    case 64:
-        hash_type = "SHA-256";
-        break;
-
-    default:
-        hash_type = "ERROR";
-        break;
-    }
-
-    return hash_type;
-}
-
-std::string md5(const std::string& str) {
-    unsigned char hash[MD5_DIGEST_LENGTH];
-
-    MD5_CTX md5;
-    MD5_Init(&md5);
-    MD5_Update(&md5, str.c_str(), str.size());
-    MD5_Final(hash, &md5);
-
-    std::stringstream ss;
-
-    for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-    }
-    return ss.str();
-}
-
-std::string sha1(const std::string& str) {
-    unsigned char hash[SHA_DIGEST_LENGTH];
-
-    SHA_CTX sha1;
-    SHA1_Init(&sha1);
-    SHA1_Update(&sha1, str.c_str(), str.size());
-    SHA1_Final(hash, &sha1);
-
-    std::stringstream ss;
-
-    for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-    }
-    return ss.str();
-}
-
-std::string sha256(const std::string& str) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, str.c_str(), str.size());
-    SHA256_Final(hash, &sha256);
-
-    std::stringstream ss;
-
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-    }
-    return ss.str();
-}
-
-std::string QuebraHash(std::string hash, std::string hash_type) {
-    int x = 1;
-    std::ifstream in_file;
-    std::string password, hashed_password;
-    in_file.open(TESTE);
-
-    if (!in_file.is_open()) {
-        std::cout << "Erro ao abrir o arquivo!" << std::endl;
-        exit(1);
-    }
-
-    if (hash_type.compare("MD5") == 0) {
-        while (true) {
-            std::getline(in_file, password);
-            hashed_password = md5(password);
-            std::cout << x++ << std::endl;
-            if (hashed_password.compare(hash) == 0) {
-                break;
-            }
-        }
-    }
-
-    if (hash_type.compare("SHA-1") == 0) {
-        while (true) {
-            std::getline(in_file, password);
-            hashed_password = sha1(password);
-            std::cout << x++ << std::endl;
-            if (hashed_password.compare(hash) == 0) {
-                break;
-            }
-        }
-    }
-
-    if (hash_type.compare("SHA-256") == 0) {
-        while (true) {
-            std::getline(in_file, password);
-            hashed_password = sha256(password);
-            std::cout << x++ << std::endl;
-            if (hashed_password.compare(hash) == 0) {
-                break;
-            }
-        }
-    }
-
-    return password;
-}
+std::atomic<bool> found(false);
 
 int main(int argc, char** argv) {
+    int thread_count;
+    bool haveSalt = false;
+    char resposta;
+
+    std::string titulo = "  _    _           _       _____       _   \n"
+        " | |  | |         | |     |  __ \\     | |  \n"
+        " | |__| | __ _ ___| |___  | |__) |__ _| |_ \n"
+        " |  __  |/ _  / __| '_  \\ |  _  // _  | __|\n"
+        " | |  | | (_| \\__ \\ | | | | | \\ \\ (_| | |_ \n"
+        " |_|  |_|\__,_|___/|_| |_| |_|  \\_\\__,_|\\__| (v4.1.3)©\n";
+
+    std::string salt = " ";
     std::string hash, hash_type;
+    std::vector<std::string> dictionary;
+    std::map<std::string, std::string> lookup_table_sha512, lookup_table_sha256, lookup_table_sha1, lookup_table_md5;
 
-    std::cout << "Insira o hash: ";
-    std::cin >> hash;
+    std::cout << titulo << std::endl;
 
-    hash_type = DescobreHash(hash);
+    std::cout << "Carregando dicionario... " << std::endl;
+    CarregaDicionario(dictionary);
+    std::cout << "Dicionario carregado.\n " << std::endl;
 
-    auto start = std::chrono::steady_clock::now();
+    std::cout << "Carregando lookup tables... " << std::endl;
+    CarregaLookUpTables(lookup_table_sha512, lookup_table_sha256, lookup_table_sha1, lookup_table_md5);
+    std::cout << "Lookup tables carregadas.\n " << std::endl;
 
-    std::string resultado = QuebraHash(hash, hash_type);
+    std::cout << "Insira o numero de threads: ";
+    std::cin >> thread_count;
 
-    auto end = std::chrono::steady_clock::now();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    std::chrono::duration<double> elapsed = end - start;
+    system("CLS");
+    std::cout << titulo << std::endl;
+    while (true) {
+        std::cout << "\nTem salt?(s/n) \n> ";
+        std::cin >> resposta;
+        haveSalt = resposta == 's' ? true : false;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        if (haveSalt) {
+            std::cout << "Insira o salt: ";
+            std::getline(std::cin, salt);
+        }
 
-    std::cout << "Tipo de hash: " << hash_type << std::endl;
-    std::cout << "Senha encontrada: " << resultado << std::endl;
-    std::cout << "Tempo para quebrar o hash: " << elapsed.count() << " segundos" << std::endl;
+        std::cout << "Insira o hash: ";
+
+        std::getline(std::cin, hash);
+
+        if (hash.compare("exit") == 0) {
+            std::cout << "\nPrograma encerrado.\n" << std::endl;
+            break;
+        }
+
+
+        hash_type = DescobreHash(hash);
+        if (hash_type.empty()) {
+            continue;
+        }
+
+        if (hash_type == "SHA-512") {
+            try {
+                std::string senha = lookup_table_sha512.at(hash);
+                std::cout << "\nSenha encontrada: " << senha << std::endl;
+                std::cout << "Tipo de hash: SHA-512" << std::endl;
+                continue;
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << "\nHash nao encontrado na lookup table.\n" << std::endl;
+            }
+        }
+
+        if (hash_type == "SHA-256") {
+            try {
+                std::string senha = lookup_table_sha256.at(hash);
+                std::cout << "\nSenha encontrada: " << senha << std::endl;
+                std::cout << "Tipo de hash: SHA-256" << std::endl;
+                continue;
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << "\nHash nao encontrado na lookup table.\n" << std::endl;
+            }
+        }
+
+        if (hash_type == "SHA-1") {
+            try {
+                std::string senha = lookup_table_sha1.at(hash);
+                std::cout << "\nSenha encontrada: " << senha << std::endl;
+                std::cout << "Tipo de hash: SHA-1" << std::endl;
+                continue;
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << "\nHash nao encontrado na lookup table.\n" << std::endl;
+            }
+        }
+
+        if (hash_type == "MD5") {
+            try {
+                std::string senha = lookup_table_md5.at(hash);
+                std::cout << "\nSenha encontrada: " << senha << std::endl;
+                std::cout << "Tipo de hash: MD5" << std::endl;
+                continue;
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << "\nHash nao encontrado na lookup table.\n" << std::endl;
+            }
+        }
+
+        found.store(false);
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        CreateThreads(std::ref(dictionary), hash, salt, hash_type, thread_count, haveSalt);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double> elapsed = end - start;
+
+        std::cout << "Tempo total de excucao: " << elapsed.count() << " segundos" << std::endl;
+    }
 
     return 0;
 }
