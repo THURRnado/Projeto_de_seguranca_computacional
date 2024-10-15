@@ -24,7 +24,7 @@ std::string DescobreHash(std::string s) {
         break;
 
     default:
-        hash_type = "Insira um hash valido!";
+        std::cout << "Insira um hash valido!" << std::endl;
         break;
     }
 

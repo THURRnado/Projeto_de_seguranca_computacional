@@ -3,6 +3,7 @@
 
 #ifndef HEADERS
 #define HEADERS
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -15,14 +16,17 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-
 #include <functional>
+#include <windows.h>
 #include <openssl/sha.h>
 #include <openssl/md5.h>
-#include "EmileDurkheim.h"
+#include <map>
+
+
+#include "Threading.h"
 #include "ThreadPool.h"
 #include "HashingAlgorithms.h"
-#include "DeusNosAbandonou.h"
+#include "HashCracker.h"
 
 extern std::atomic<bool> found;
 #endif
