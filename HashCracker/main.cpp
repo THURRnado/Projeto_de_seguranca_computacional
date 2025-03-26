@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Headers.h"
 
-#define DICIONARIO "C:/Users/carlo/Desktop/programação/C++/Projeto_de_seguranca_computacional/projeto_final_segurança/realhuman_phill.txt"
+#define DICIONARIO "../realhuman_phill.txt"
 #define LOOKUPTABLE "Devlookup_table.txt"
 std::atomic<bool> found(false);
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
                         " | |__| | __ _ ___| |___  | |__) |__ _| |_ \n"
                         " |  __  |/ _  / __| '_  \\ |  _  // _  | __|\n"
                         " | |  | | (_| \\__ \\ | | | | | \\ \\ (_| | |_ \n"
-                        " |_|  |_|\__,_|___/|_| |_| |_|  \\_\\__,_|\\__| (v4.1.3)©\n";
+                        " |_|  |_|\__,_|___/|_| |_| |_|  \\_\\__,_|\\__| (v4.1.3)Â©\n";
 
     std::string salt = " ";
     std::string hash, hash_type;
